@@ -1,21 +1,10 @@
 <div align="center">
 
-```
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║     ██████╗ ███████╗███████╗██████╗  ██████╗ ██╗  ██╗      ║
-║     ██╔══██╗██╔════╝██╔════╝██╔══██╗██╔═══██╗██║ ██╔╝      ║
-║     ██████╔╝█████╗  ███████╗██████╔╝██║   ██║█████╔╝       ║
-║     ██╔══██╗██╔══╝  ╚════██║██╔═══╝ ██║   ██║██╔═██╗       ║
-║     ██████╔╝███████╗███████║██║     ╚██████╔╝██║  ██╗      ║
-║     ╚═════╝ ╚══════╝╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝      ║
-║                                                              ║
-║           S Y N T H   M C P   P L A T F O R M               ║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝
-```
+<h1>🎛️ BespokeSynth MCP</h1>
 
-**Control BespokeSynth with AI — 44 tools across OSC, music theory, composition & audio**
+<h3>Control BespokeSynth with AI</h3>
+
+<p>44 tools &nbsp;·&nbsp; OSC &nbsp;·&nbsp; Music Theory &nbsp;·&nbsp; Composition &nbsp;·&nbsp; Audio Processing</p>
 
 [![CI](https://github.com/Wolvend/Bespoke-Synth-MCP/actions/workflows/ci.yml/badge.svg)](https://github.com/Wolvend/Bespoke-Synth-MCP/actions)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue?logo=python&logoColor=white)](https://python.org)
