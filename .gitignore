@@ -18,6 +18,18 @@ htmlcov/
 tracks/*.mp3
 tracks/*.mid
 tracks/*.wav
+tracks/*.flac
+tracks/*.ogg
 tracks/*.json
+tracks/*.png
 tracks/stems/
+
+# Root-level generated audio
+*.mp3
+*.wav
+*.flac
+*.ogg
+
+# Session logs
+sessions/
 

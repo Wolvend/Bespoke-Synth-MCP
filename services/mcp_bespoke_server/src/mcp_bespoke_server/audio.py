@@ -271,6 +271,134 @@ def stems(
 # Tool 12: normalize
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# analyze_style — extended analysis for AI learning from reference tracks
+# ---------------------------------------------------------------------------
+
+def analyze_style(file: str, sections: int = 8) -> dict:
+    """
+    Extended audio analysis for style fingerprinting.
+
+    Returns BPM, key, rhythm_density (onsets/sec), per-section energy curve (dBFS),
+    frequency band balance (sub/bass/mid/high dBFS), and inferred style_tags.
+
+    Args:
+        file:     Filename in tracks/ dir OR absolute path.
+        sections: Number of equal sections to split for energy curve (2-32).
+
+    Returns:
+        {ok, file, duration_s, bpm, key, rhythm_density, energy_curve,
+         band_balance, style_tags, ts_ms}
+    """
+    try:
+        audio_path = _resolve(file)
+    except FileNotFoundError as exc:
+        return {"ok": False, "error": str(exc), "ts_ms": _ms()}
+
+    try:
+        import numpy as np
+        samples, sr = _load_audio_np(audio_path)
+    except ImportError as exc:
+        return {"ok": False, "error": f"scipy/pydub not available: {exc}", "ts_ms": _ms()}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc), "ts_ms": _ms()}
+
+    duration_s = round(len(samples) / sr, 3)
+
+    # BPM + Key via existing helpers
+    bpm, _bpm_conf = _detect_bpm(samples, sr)
+    key, _key_conf = _detect_key(samples, sr)
+
+    # Rhythm density: count onsets per second
+    hop = sr // 100
+    frames = len(samples) // hop
+    energy = np.array([
+        np.sqrt(np.mean(samples[i * hop:(i + 1) * hop] ** 2))
+        for i in range(frames)
+    ])
+    onset_env = np.maximum(np.diff(energy, prepend=energy[0]), 0)
+    threshold = np.mean(onset_env) + np.std(onset_env) * 0.5
+    onset_count = int(np.sum(onset_env > threshold))
+    rhythm_density = round(onset_count / max(duration_s, 1.0), 2)
+
+    # Per-section energy curve (RMS dBFS per section)
+    section_len = max(1, len(samples) // sections)
+    energy_curve = []
+    for i in range(sections):
+        sec = samples[i * section_len:(i + 1) * section_len]
+        rms = float(np.sqrt(np.mean(sec ** 2) + 1e-9))
+        db = round(20 * np.log10(rms), 1)
+        energy_curve.append(db)
+
+    # Frequency band balance via FFT
+    def _band_db(sig, lo, hi):
+        n = len(sig)
+        fft = np.fft.rfft(sig.astype(np.float64))
+        freqs = np.fft.rfftfreq(n, 1.0 / sr)
+        mask = (freqs >= lo) & (freqs < hi)
+        power = float(np.sum(np.abs(fft[mask]) ** 2) / (n * n + 1e-30))
+        return round(20 * np.log10(np.sqrt(max(power, 1e-18))), 1)
+
+    band_balance = {
+        "sub":  _band_db(samples, 20, 80),
+        "bass": _band_db(samples, 80, 250),
+        "mid":  _band_db(samples, 250, 2000),
+        "high": _band_db(samples, 2000, 8000),
+    }
+
+    # Infer style tags from metrics
+    tags: list[str] = []
+    sub_db = band_balance["sub"]
+    bass_db = band_balance["bass"]
+    mid_db = band_balance["mid"]
+    high_db = band_balance["high"]
+
+    if bpm >= 160:
+        tags.append("fast")
+    elif bpm >= 120:
+        tags.append("mid-tempo")
+    else:
+        tags.append("slow")
+
+    if sub_db > -32:
+        tags.append("bass-heavy")
+    if mid_db > -30:
+        tags.append("bright-mids")
+    if high_db > -38:
+        tags.append("bright")
+
+    if rhythm_density > 8:
+        tags.append("dense-rhythm")
+    elif rhythm_density > 4:
+        tags.append("moderate-rhythm")
+    else:
+        tags.append("sparse-rhythm")
+
+    # Energy variance: spiky = pumping/sidechain, smooth = sustained
+    ec_arr = np.array(energy_curve)
+    ec_range = float(ec_arr.max() - ec_arr.min())
+    if ec_range > 15:
+        tags.append("dynamic")
+    elif ec_range < 5:
+        tags.append("sustained")
+
+    if sub_db - mid_db > 20:
+        tags.append("sub-dominant")
+
+    return {
+        "ok": True,
+        "file": str(audio_path),
+        "duration_s": duration_s,
+        "bpm": bpm,
+        "key": key,
+        "rhythm_density": rhythm_density,
+        "energy_curve": [float(v) for v in energy_curve],
+        "band_balance": {k: float(v) for k, v in band_balance.items()},
+        "style_tags": tags,
+        "ts_ms": _ms(),
+    }
+
+
 def normalize(file: str, target_lufs: float = -14.0, output_file: str | None = None) -> dict:
     """Normalize audio to a target LUFS level."""
     try:

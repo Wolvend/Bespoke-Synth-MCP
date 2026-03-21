@@ -100,6 +100,17 @@ from .schemas import (
     SaveSnapshotIn,
     VoiceLeadIn,
     VoiceLeadOut,
+    # --- new tools (45-49) ---
+    AudioStyleIn,
+    AudioStyleOut,
+    ImportMidiIn,
+    ImportMidiOut,
+    ListSessionsOut,
+    RecordSessionIn,
+    RecordSessionOut,
+    ReplaySessionIn,
+    ReplaySessionOut,
+    SessionEvent,
 )
 from . import audio as _audio
 from . import compose as _compose
@@ -1662,6 +1673,185 @@ def audio_convert(
         format=r.get("format"),
         size_kb=r.get("size_kb"),
         error=r.get("error"),
+        ts_ms=r["ts_ms"],
+    )
+
+
+# ===========================================================================
+# Tools 45-49 (new batch: MIDI import, style analyzer, session recorder)
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# 45. compose.import_midi
+# ---------------------------------------------------------------------------
+
+@mcp.tool(name="compose.import_midi")
+def compose_import_midi(
+    file: str,
+    track_index: int = -1,
+) -> ImportMidiOut:
+    """
+    Read a MIDI file and return structured note events with absolute timestamps.
+
+    Args:
+        file:        Filename in tracks/ dir OR absolute path (e.g. "loop.mid").
+        track_index: Which MIDI track to extract (0-based). -1 = merge all tracks.
+
+    Returns note list with {pitch, velocity, at_ms, duration_ms, channel, track},
+    plus bpm, ticks_per_beat, duration_s, and track_count.
+    Requires: mido (pip install mido).
+    """
+    inp = ImportMidiIn(file=file, track_index=track_index)
+    r = _compose.import_midi(inp.file, inp.track_index)
+    return ImportMidiOut(
+        ok=r["ok"],
+        file=r.get("file", file),
+        track_count=r.get("track_count", 0),
+        note_count=r.get("note_count", 0),
+        duration_s=r.get("duration_s", 0.0),
+        bpm=r.get("bpm", 120.0),
+        ticks_per_beat=r.get("ticks_per_beat", 480),
+        notes=r.get("notes", []),
+        error=r.get("error"),
+        ts_ms=r["ts_ms"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# 46. audio.analyze_style
+# ---------------------------------------------------------------------------
+
+@mcp.tool(name="audio.analyze_style")
+def audio_analyze_style(
+    file: str,
+    sections: int = 8,
+) -> AudioStyleOut:
+    """
+    Extended style fingerprint analysis of an audio file.
+
+    Returns BPM, key, rhythm_density (onsets/sec), per-section energy curve (dBFS),
+    frequency band balance (sub/bass/mid/high), and inferred style_tags for use
+    as a reference when composing in a similar style.
+
+    Args:
+        file:     Filename in tracks/ dir OR absolute path.
+        sections: Number of equal time sections for energy curve (2-32, default 8).
+
+    Returns:
+        rhythm_density: Onsets per second (higher = busier pattern).
+        energy_curve:   List of RMS dBFS values, one per section.
+        band_balance:   dict with "sub", "bass", "mid", "high" dBFS levels.
+        style_tags:     List of descriptive tags (e.g. ["fast", "bass-heavy", "dynamic"]).
+
+    Requires: scipy, pydub.
+    """
+    inp = AudioStyleIn(file=file, sections=sections)
+    r = _audio.analyze_style(inp.file, inp.sections)
+    return AudioStyleOut(
+        ok=r["ok"],
+        file=r.get("file", file),
+        duration_s=r.get("duration_s"),
+        bpm=r.get("bpm"),
+        key=r.get("key"),
+        rhythm_density=r.get("rhythm_density"),
+        energy_curve=r.get("energy_curve", []),
+        band_balance=r.get("band_balance", {}),
+        style_tags=r.get("style_tags", []),
+        error=r.get("error"),
+        ts_ms=r["ts_ms"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# 47. bespoke.compose.record_session
+# ---------------------------------------------------------------------------
+
+@mcp.tool(name="bespoke.compose.record_session")
+def compose_record_session(
+    session_name: str,
+    tool_name: str,
+    args: dict[str, Any],
+    notes: str = "",
+) -> RecordSessionOut:
+    """
+    Append a tool call to a named session log for later replay.
+
+    Use this after each tool call in a creative session to capture the full
+    pipeline so you can reproduce or iterate on it later.
+
+    Args:
+        session_name: Alphanumeric/hyphen name, e.g. "sunrise-v2".
+        tool_name:    The MCP tool name that was called, e.g. "compose.generate_sequence".
+        args:         The arguments dict passed to that tool.
+        notes:        Optional freeform note about why this call was made.
+
+    Saves to sessions/<session_name>.json in the repo root.
+    """
+    inp = RecordSessionIn(
+        session_name=session_name,
+        tool_name=tool_name,
+        args=args,
+        notes=notes,
+    )
+    r = _compose.record_session(inp.session_name, inp.tool_name, inp.args, inp.notes)
+    return RecordSessionOut(
+        ok=r["ok"],
+        session_name=r.get("session_name", session_name),
+        event_count=r.get("event_count", 0),
+        session_path=r.get("session_path", ""),
+        error=r.get("error"),
+        ts_ms=r["ts_ms"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# 48. bespoke.compose.replay_session
+# ---------------------------------------------------------------------------
+
+@mcp.tool(name="bespoke.compose.replay_session")
+def compose_replay_session(session_name: str) -> ReplaySessionOut:
+    """
+    Read a session log and return the ordered list of tool calls it contains.
+
+    Use this to review what was done in a previous session or to re-execute
+    a known-good pipeline.
+
+    Args:
+        session_name: Name of a session previously created with record_session.
+
+    Returns all recorded events with tool_name, args, notes, and timestamps.
+    """
+    inp = ReplaySessionIn(session_name=session_name)
+    r = _compose.replay_session(inp.session_name)
+    events = [SessionEvent(**e) for e in r.get("events", [])]
+    return ReplaySessionOut(
+        ok=r["ok"],
+        session_name=r.get("session_name", session_name),
+        event_count=r.get("event_count", 0),
+        events=events,
+        session_path=r.get("session_path", ""),
+        error=r.get("error"),
+        ts_ms=r["ts_ms"],
+    )
+
+
+# ---------------------------------------------------------------------------
+# 49. bespoke.compose.list_sessions
+# ---------------------------------------------------------------------------
+
+@mcp.tool(name="bespoke.compose.list_sessions")
+def compose_list_sessions() -> ListSessionsOut:
+    """
+    List all recorded session names in the sessions/ directory.
+
+    Returns a list of session names (without .json extension) sorted alphabetically.
+    Use bespoke.compose.replay_session to read a specific session.
+    """
+    r = _compose.list_sessions()
+    return ListSessionsOut(
+        ok=r["ok"],
+        sessions=r["sessions"],
+        count=r["count"],
         ts_ms=r["ts_ms"],
     )
 

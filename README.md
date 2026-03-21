@@ -4,7 +4,7 @@
 
 <h3>Control BespokeSynth with AI</h3>
 
-<p>44 tools &nbsp;·&nbsp; OSC &nbsp;·&nbsp; Music Theory &nbsp;·&nbsp; Composition &nbsp;·&nbsp; Audio Processing</p>
+<p>49 tools &nbsp;·&nbsp; OSC &nbsp;·&nbsp; Music Theory &nbsp;·&nbsp; Composition &nbsp;·&nbsp; Audio Processing &nbsp;·&nbsp; MIDI Import &nbsp;·&nbsp; Style Analysis &nbsp;·&nbsp; Session Recorder</p>
 
 [![CI](https://github.com/Wolvend/Bespoke-Synth-MCP/actions/workflows/ci.yml/badge.svg)](https://github.com/Wolvend/Bespoke-Synth-MCP/actions)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue?logo=python&logoColor=white)](https://python.org)
@@ -45,7 +45,7 @@ You describe what you want. The AI uses the tools. Music comes out.
 │                    MCP BESPOKE SERVER                           │
 │  ┌────────────┐  ┌─────────────┐  ┌──────────┐  ┌──────────┐  │
 │  │  Theory    │  │  Compose    │  │  Audio   │  │   OSC    │  │
-│  │  11 tools  │  │  11 tools   │  │  6 tools │  │ 16 tools │  │
+│  │  11 tools  │  │  16 tools   │  │  7 tools │  │ 16 tools │  │
 │  └────────────┘  └─────────────┘  └──────────┘  └──────────┘  │
 │               FastMCP · Pydantic v2 · Python 3.11               │
 └──────────────────────────┬──────────────────────────────────────┘
@@ -110,7 +110,7 @@ MCP_TRANSPORT=streamable-http python -m mcp_bespoke_server.server
 
 ---
 
-## All 44 Tools
+## All 49 Tools
 
 ### OSC & Synth Control
 
@@ -178,6 +178,10 @@ MCP_TRANSPORT=streamable-http python -m mcp_bespoke_server.server
 | `bespoke.compose.list_tracks` | List recently generated tracks with metadata |
 | `bespoke.compose.tag_track` | Write metadata tags to a track |
 | `bespoke.compose.delete_track` | Remove a track and its metadata file |
+| `compose.import_midi` | Read a .mid file into structured note events (pitch, velocity, at_ms, duration_ms) |
+| `bespoke.compose.record_session` | Append a tool call to a named session log for replay |
+| `bespoke.compose.replay_session` | Return all recorded tool calls from a named session |
+| `bespoke.compose.list_sessions` | List all available session log names |
 
 ---
 
@@ -193,6 +197,7 @@ MCP_TRANSPORT=streamable-http python -m mcp_bespoke_server.server
 | `audio.splice` | Extract a time region from a file | pydub |
 | `audio.convert` | Convert between mp3 / wav / flac / ogg | pydub |
 | `audio.stems` | Separate into drums / bass / vocals / other | demucs, torch (~2 GB) |
+| `audio.analyze_style` | Extended fingerprint: rhythm density, energy curve, band balance, style tags | scipy, pydub |
 
 ```bash
 # Install audio tools

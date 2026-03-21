@@ -738,3 +738,91 @@ class AudioConvertOut(ToolBaseModel):
     size_kb: float | None = None
     error: str | None = None
     ts_ms: int
+
+
+# ─── compose.import_midi schemas ──────────────────────────────────────────────
+
+class ImportMidiIn(ToolBaseModel):
+    file: str = Field(min_length=1, max_length=512)
+    track_index: int = Field(default=-1, ge=-1, description="-1 = merge all tracks")
+
+
+class ImportMidiOut(ToolBaseModel):
+    ok: bool
+    file: str = ""
+    track_count: int = 0
+    note_count: int = 0
+    duration_s: float = 0.0
+    bpm: float = 120.0
+    ticks_per_beat: int = 480
+    notes: list[dict[str, Any]] = Field(default_factory=list)
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── audio.analyze_style schemas ──────────────────────────────────────────────
+
+class AudioStyleIn(ToolBaseModel):
+    file: str = Field(min_length=1, max_length=512)
+    sections: int = Field(default=8, ge=2, le=32)
+
+
+class AudioStyleOut(ToolBaseModel):
+    ok: bool
+    file: str = ""
+    duration_s: float | None = None
+    bpm: float | None = None
+    key: str | None = None
+    rhythm_density: float | None = None
+    energy_curve: list[float] = Field(default_factory=list)
+    band_balance: dict[str, float] = Field(default_factory=dict)
+    style_tags: list[str] = Field(default_factory=list)
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── bespoke.compose.session schemas ──────────────────────────────────────────
+
+class RecordSessionIn(ToolBaseModel):
+    session_name: str = Field(min_length=1, max_length=128, pattern=r"^[\w\-]+$")
+    tool_name: str = Field(min_length=1, max_length=128)
+    args: dict[str, Any] = Field(default_factory=dict)
+    notes: str = ""
+
+
+class RecordSessionOut(ToolBaseModel):
+    ok: bool
+    session_name: str = ""
+    event_count: int = 0
+    session_path: str = ""
+    error: str | None = None
+    ts_ms: int
+
+
+class SessionEvent(ToolBaseModel):
+    index: int
+    tool_name: str
+    args: dict[str, Any] = Field(default_factory=dict)
+    notes: str = ""
+    recorded_at: str
+
+
+class ReplaySessionIn(ToolBaseModel):
+    session_name: str = Field(min_length=1, max_length=128, pattern=r"^[\w\-]+$")
+
+
+class ReplaySessionOut(ToolBaseModel):
+    ok: bool
+    session_name: str = ""
+    event_count: int = 0
+    events: list[SessionEvent] = Field(default_factory=list)
+    session_path: str = ""
+    error: str | None = None
+    ts_ms: int
+
+
+class ListSessionsOut(ToolBaseModel):
+    ok: bool
+    sessions: list[str] = Field(default_factory=list)
+    count: int = 0
+    ts_ms: int

@@ -423,6 +423,179 @@ def generate_sequence(
 # Tool 7: export_wav
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Tool: import_midi
+# ---------------------------------------------------------------------------
+
+def import_midi(file: str, track_index: int = -1) -> dict:
+    """
+    Read a MIDI file and return structured note events with absolute timestamps.
+
+    Args:
+        file:        Filename in tracks/ dir OR absolute path.
+        track_index: Which MIDI track to read (-1 = merge all tracks, 0-based).
+
+    Returns:
+        {ok, file, track_count, note_count, duration_s, bpm, ticks_per_beat, notes, ts_ms}
+        Each note: {pitch, velocity, at_ms, duration_ms, channel, track}
+    """
+    try:
+        import mido
+    except ImportError:
+        return {"ok": False, "error": "mido not installed (pip install mido)", "ts_ms": _ms()}
+
+    _TRACKS_DIR.mkdir(exist_ok=True)
+    p = Path(file)
+    if p.is_absolute() and p.exists():
+        midi_path = p
+    else:
+        midi_path = _TRACKS_DIR / file
+    if not midi_path.exists():
+        return {"ok": False, "error": f"File not found: {file!r}", "ts_ms": _ms()}
+
+    try:
+        mid = mido.MidiFile(str(midi_path))
+    except Exception as exc:
+        return {"ok": False, "error": f"Could not parse MIDI: {exc}", "ts_ms": _ms()}
+
+    ticks_per_beat = mid.ticks_per_beat
+    # Extract BPM from tempo meta messages; default 120
+    bpm = 120.0
+    for track in mid.tracks:
+        for msg in track:
+            if msg.type == "set_tempo":
+                bpm = round(60_000_000.0 / msg.tempo, 2)
+                break
+
+    us_per_tick = (60_000_000.0 / bpm) / ticks_per_beat  # microseconds per tick
+    ms_per_tick = us_per_tick / 1000.0
+
+    def _extract_notes(track, track_idx: int) -> list[dict]:
+        """Convert note_on/note_off pairs in a track to {pitch,velocity,at_ms,duration_ms}."""
+        notes_out = []
+        pending: dict[tuple[int, int], tuple[float, int]] = {}  # (channel, pitch) -> (on_ms, velocity)
+        cursor_ms = 0.0
+        for msg in track:
+            cursor_ms += msg.time * ms_per_tick
+            if msg.type == "note_on" and msg.velocity > 0:
+                pending[(msg.channel, msg.note)] = (cursor_ms, msg.velocity)
+            elif msg.type == "note_off" or (msg.type == "note_on" and msg.velocity == 0):
+                key = (msg.channel, msg.note)
+                if key in pending:
+                    on_ms, vel = pending.pop(key)
+                    notes_out.append({
+                        "pitch": msg.note,
+                        "velocity": vel,
+                        "at_ms": round(on_ms),
+                        "duration_ms": max(1, round(cursor_ms - on_ms)),
+                        "channel": msg.channel,
+                        "track": track_idx,
+                    })
+        # Close any stuck notes at end of track
+        for (ch, pitch), (on_ms, vel) in pending.items():
+            notes_out.append({
+                "pitch": pitch, "velocity": vel,
+                "at_ms": round(on_ms), "duration_ms": 250,
+                "channel": ch, "track": track_idx,
+            })
+        return notes_out
+
+    track_count = len(mid.tracks)
+    if track_index == -1:
+        # Merge all tracks
+        all_notes: list[dict] = []
+        for idx, track in enumerate(mid.tracks):
+            all_notes.extend(_extract_notes(track, idx))
+    else:
+        if track_index >= track_count:
+            return {"ok": False, "error": f"track_index {track_index} out of range (0-{track_count-1})", "ts_ms": _ms()}
+        all_notes = _extract_notes(mid.tracks[track_index], track_index)
+
+    all_notes.sort(key=lambda n: n["at_ms"])
+    duration_s = 0.0
+    if all_notes:
+        last = max(n["at_ms"] + n["duration_ms"] for n in all_notes)
+        duration_s = round(last / 1000.0, 3)
+
+    return {
+        "ok": True,
+        "file": str(midi_path.absolute()),
+        "track_count": track_count,
+        "note_count": len(all_notes),
+        "duration_s": duration_s,
+        "bpm": bpm,
+        "ticks_per_beat": ticks_per_beat,
+        "notes": all_notes,
+        "ts_ms": _ms(),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Session recorder
+# ---------------------------------------------------------------------------
+
+_SESSIONS_DIR = _REPO_ROOT / "sessions"
+
+
+def record_session(session_name: str, tool_name: str, args: dict, notes: str = "") -> dict:
+    """Append a tool call to a named session log for later replay."""
+    import datetime as _dt
+    _SESSIONS_DIR.mkdir(exist_ok=True)
+    session_path = _SESSIONS_DIR / f"{session_name}.json"
+    events: list[dict] = []
+    if session_path.exists():
+        try:
+            events = json.loads(session_path.read_text(encoding="utf-8"))
+        except Exception:
+            events = []
+    new_event = {
+        "index": len(events),
+        "tool_name": tool_name,
+        "args": args,
+        "notes": notes,
+        "recorded_at": _dt.datetime.now().isoformat(),
+    }
+    events.append(new_event)
+    try:
+        session_path.write_text(json.dumps(events, indent=2), encoding="utf-8")
+    except OSError as exc:
+        return {"ok": False, "error": str(exc), "ts_ms": _ms()}
+    return {
+        "ok": True,
+        "session_name": session_name,
+        "event_count": len(events),
+        "session_path": str(session_path.absolute()),
+        "ts_ms": _ms(),
+    }
+
+
+def replay_session(session_name: str) -> dict:
+    """Read a session log and return ordered tool calls ready to re-execute."""
+    _SESSIONS_DIR.mkdir(exist_ok=True)
+    session_path = _SESSIONS_DIR / f"{session_name}.json"
+    if not session_path.exists():
+        return {"ok": False, "error": f"Session {session_name!r} not found", "ts_ms": _ms()}
+    try:
+        events = json.loads(session_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return {"ok": False, "error": f"Could not read session: {exc}", "ts_ms": _ms()}
+    return {
+        "ok": True,
+        "session_name": session_name,
+        "event_count": len(events),
+        "events": events,
+        "session_path": str(session_path.absolute()),
+        "ts_ms": _ms(),
+    }
+
+
+def list_sessions() -> dict:
+    """List all recorded session names."""
+    _SESSIONS_DIR.mkdir(exist_ok=True)
+    names = sorted(f.stem for f in _SESSIONS_DIR.glob("*.json"))
+    return {"ok": True, "sessions": names, "count": len(names), "ts_ms": _ms()}
+
+
 def export_wav(name: str, dry_run: bool = False) -> dict:
     """Export a workflow preset to a lossless WAV file."""
     preset_path = _PRESETS_DIR / f"{name}.json"
