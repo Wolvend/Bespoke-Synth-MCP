@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "bespokesynth_mcp": {
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_bespoke_server.server"
+      ],
+      "cwd": "./services/mcp_bespoke_server",
+      "env": {
+        "MCP_TRANSPORT": "stdio",
+        "BESPOKE_CMD_HOST": "127.0.0.1",
+        "BESPOKE_CMD_PORT": "9001",
+        "REPLY_LISTEN_PORT": "9002",
+        "TELEMETRY_LISTEN_PORT": "9010"
+      }
+    }
+  }
+}
+

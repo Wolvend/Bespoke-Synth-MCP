@@ -1,0 +1,11 @@
+{
+  "name": "bespokesynth_mcp",
+  "transport": {
+    "type": "http",
+    "url": "http://127.0.0.1:8000/mcp",
+    "headers": {
+      "Accept": "application/json, text/event-stream"
+    }
+  }
+}
+

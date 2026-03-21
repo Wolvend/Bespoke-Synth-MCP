@@ -1,0 +1,308 @@
+{
+  "name": "breakcore_brainworm",
+  "bpm": 180,
+  "description": "Fast-paced breakcore with infectious synth hook",
+  "steps": [
+    {
+      "preset": "kick_808",
+      "duration_ms": 500,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "kick_808",
+      "duration_ms": 500,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "snare_crisp",
+      "duration_ms": 250,
+      "delay_ms": 250,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_closed",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_closed",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "kick_808",
+      "duration_ms": 250,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_closed",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "snare_crisp",
+      "duration_ms": 250,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_closed",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "kick_808",
+      "duration_ms": 250,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_closed",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "tom_high",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "tom_mid",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "tom_low",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "lead_bright",
+      "duration_ms": 250,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_closed",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "lead_bright",
+      "duration_ms": 250,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_closed",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "bass_deep",
+      "duration_ms": 500,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "snare_crisp",
+      "duration_ms": 250,
+      "delay_ms": 250,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_open",
+      "duration_ms": 300,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "bass_deep",
+      "duration_ms": 500,
+      "delay_ms": 200,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "kick_808",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "snare_crisp",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_closed",
+      "duration_ms": 62,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_closed",
+      "duration_ms": 62,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "kick_808",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "tom_high",
+      "duration_ms": 62,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "tom_mid",
+      "duration_ms": 62,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "snare_crisp",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "lead_bright",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "lead_bright",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "lead_bright",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "lead_bright",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "kick_808",
+      "duration_ms": 250,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "kick_808",
+      "duration_ms": 250,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "snare_crisp",
+      "duration_ms": 250,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_closed",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "hihat_closed",
+      "duration_ms": 125,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "bass_deep",
+      "duration_ms": 500,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "lead_bright",
+      "duration_ms": 250,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "lead_bright",
+      "duration_ms": 250,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    },
+    {
+      "preset": "snare_crisp",
+      "duration_ms": 500,
+      "delay_ms": 0,
+      "velocity": 1.0,
+      "modulation": null
+    }
+  ]
+}

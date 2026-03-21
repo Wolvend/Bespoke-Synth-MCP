@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "bespokesynth_mcp": {
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_bespoke_server.server"
+      ],
+      "cwd": "./services/mcp_bespoke_server"
+    }
+  }
+}
+

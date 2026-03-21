@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.env
+coverage.xml
+htmlcov/
+*.egg-info/
+
+# Generated audio/MIDI output — do not commit
+tracks/*.mp3
+tracks/*.mid
+tracks/*.wav
+tracks/*.json
+tracks/stems/
+
