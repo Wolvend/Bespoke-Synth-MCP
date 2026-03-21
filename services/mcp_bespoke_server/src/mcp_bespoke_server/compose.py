@@ -430,6 +430,7 @@ def export_wav(name: str, dry_run: bool = False) -> dict:
         return {"ok": False, "error": f"Preset '{name}' not found", "ts_ms": _ms()}
 
     import json as _json
+    import datetime as _dt
     try:
         preset = _json.loads(preset_path.read_text())
     except Exception as exc:
