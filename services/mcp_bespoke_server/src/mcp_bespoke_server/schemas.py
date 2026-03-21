@@ -344,7 +344,7 @@ class WorkflowStepIn(ToolBaseModel):
     preset: str = Field(min_length=1, max_length=128)
     duration_ms: float = Field(gt=0)
     delay_ms: float = Field(default=0.0, ge=0)
-    velocity: float = Field(default=1.0, ge=0, le=2.0)
+    volume: float = Field(default=1.0, ge=0, le=2.0)
 
 
 class SavePresetIn(ToolBaseModel):

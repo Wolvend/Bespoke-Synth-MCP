@@ -287,7 +287,7 @@ def export_midi(
         cursor = 0.0
         for step in pr["preset"].get("steps", []):
             dur = float(step.get("duration_ms", ms_per_beat))
-            vel = int(min(127, float(step.get("velocity", 1.0)) * 100))
+            vel = int(min(127, float(step.get("volume", step.get("velocity", 1.0))) * 100))
             note_events.append({"pitch": 60, "velocity": vel,
                                  "at_ms": int(cursor + float(step.get("delay_ms", 0))),
                                  "duration_ms": int(dur)})

@@ -1417,7 +1417,7 @@ async def bespoke_midi_cc(
         ok=result["ok"],
         applied=result.get("applied", False),
         raw_reply=result.get("raw_reply"),
-        ts_ms=result["ts_ms"],
+        ts_ms=result.get("ts_ms", _ms()),
     )
 
 
@@ -1450,9 +1450,8 @@ async def bespoke_save_snapshot(
     result = await _send_with_cache(inp, envelope)
     return RawCommandOut(
         ok=result["ok"],
-        applied=result.get("applied", False),
         raw_reply=result.get("raw_reply"),
-        ts_ms=result["ts_ms"],
+        ts_ms=result.get("ts_ms", _ms()),
     )
 
 
