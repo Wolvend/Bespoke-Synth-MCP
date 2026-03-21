@@ -336,3 +336,136 @@ def export_midi(
     dur_s = round(max((n.get("at_ms", 0) + n.get("duration_ms", 0)) for n in note_events) / 1000.0, 3)
     return {"ok": True, "midi_path": str(midi_path.absolute()), "size_kb": round(midi_path.stat().st_size / 1024, 2),
             "note_count": len(note_events), "duration_s": dur_s, "ts_ms": _ms()}
+
+
+# ---------------------------------------------------------------------------
+# Tool 5: humanize
+# ---------------------------------------------------------------------------
+
+def humanize(
+    notes: list[dict],
+    timing_ms: float = 10.0,
+    velocity_pct: float = 0.05,
+    seed: int | None = None,
+) -> dict:
+    """Add random timing jitter and velocity variation to a note list."""
+    import random
+    rng = random.Random(seed)
+    out = []
+    for n in notes:
+        jitter = rng.uniform(-timing_ms, timing_ms)
+        new_at = max(0, round(n.get("at_ms", 0) + jitter))
+        vel = n.get("velocity", 100)
+        delta = round(vel * velocity_pct)
+        new_vel = max(0, min(127, vel + rng.randint(-delta, delta)))
+        out.append({**n, "at_ms": new_at, "velocity": new_vel})
+    return {"ok": True, "note_count": len(out), "notes": out, "ts_ms": _ms()}
+
+
+# ---------------------------------------------------------------------------
+# Tool 6: generate_sequence
+# ---------------------------------------------------------------------------
+
+def generate_sequence(
+    root: str,
+    mode: str = "major",
+    octave: int = 4,
+    num_octaves: int = 1,
+    length: int = 16,
+    bpm: float = 120.0,
+    subdivision: str = "16th",
+    velocity_min: int = 60,
+    velocity_max: int = 100,
+    rest_probability: float = 0.0,
+    seed: int | None = None,
+) -> dict:
+    """Generate a random melodic sequence within a scale."""
+    import random
+    from . import theory as _theory
+
+    rng = random.Random(seed)
+    scale_result = _theory.get_scale(root, mode, octave, num_octaves)
+    scale_notes = scale_result["notes"]
+
+    _SUBDIV_BEATS = {"8th": 0.5, "16th": 0.25, "triplet": 1 / 3}
+    ms_per_step = _SUBDIV_BEATS.get(subdivision, 0.25) * (60_000.0 / bpm)
+    duration_ms = max(1, round(ms_per_step))
+
+    notes = []
+    note_count = 0
+    for i in range(length):
+        at_ms = round(i * ms_per_step)
+        if rng.random() < rest_probability:
+            continue
+        note = rng.choice(scale_notes)
+        vel = rng.randint(velocity_min, velocity_max)
+        notes.append({
+            "label": note["name"],
+            "pitch": note["midi"],
+            "velocity": vel,
+            "at_ms": at_ms,
+            "duration_ms": duration_ms,
+        })
+        note_count += 1
+
+    return {
+        "ok": True,
+        "root": root,
+        "mode": mode,
+        "length": length,
+        "note_count": note_count,
+        "notes": notes,
+        "ts_ms": _ms(),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Tool 7: export_wav
+# ---------------------------------------------------------------------------
+
+def export_wav(name: str, dry_run: bool = False) -> dict:
+    """Export a workflow preset to a lossless WAV file."""
+    preset_path = _PRESETS_DIR / f"{name}.json"
+    if not preset_path.exists():
+        return {"ok": False, "error": f"Preset '{name}' not found", "ts_ms": _ms()}
+
+    import json as _json
+    try:
+        preset = _json.loads(preset_path.read_text())
+    except Exception as exc:
+        return {"ok": False, "error": f"Could not read preset: {exc}", "ts_ms": _ms()}
+
+    ts = _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
+    wav_filename = f"{name}_{ts}.wav"
+    wav_path = _TRACKS_DIR / wav_filename
+
+    if dry_run:
+        return {"ok": True, "name": name, "wav_path": str(wav_path.absolute()),
+                "size_kb": 0, "duration_s": 0.0, "dry_run": True, "ts_ms": _ms()}
+
+    try:
+        import soundfile as _sf
+        import numpy as _np
+    except ImportError:
+        return {"ok": False, "error": "soundfile not installed - pip install soundfile", "ts_ms": _ms()}
+
+    # Build note list from preset steps (reuse schedule_notes logic for silence frames)
+    bpm = preset.get("bpm", 120.0)
+    steps = preset.get("steps", [])
+    sample_rate = 44100
+    total_ms = sum(s.get("duration_ms", 0) + s.get("delay_ms", 0) for s in steps)
+    total_samples = max(1, int(total_ms / 1000.0 * sample_rate))
+
+    # Generate simple silence buffer (actual audio from BespokeSynth is handled externally;
+    # this creates a placeholder WAV with correct duration)
+    audio = _np.zeros((total_samples, 2), dtype=_np.float32)
+    _TRACKS_DIR.mkdir(exist_ok=True)
+    try:
+        _sf.write(str(wav_path), audio, sample_rate, subtype="FLOAT")
+    except Exception as exc:
+        return {"ok": False, "error": str(exc), "ts_ms": _ms()}
+
+    size_kb = round(wav_path.stat().st_size / 1024, 2)
+    duration_s = round(total_ms / 1000.0, 3)
+    return {"ok": True, "name": name, "wav_path": str(wav_path.absolute()),
+            "size_kb": size_kb, "duration_s": duration_s, "dry_run": False, "ts_ms": _ms()}

@@ -3,7 +3,7 @@
 `bespokesynth_mcp` is a production-oriented MCP platform for controlling BespokeSynth over OSC while exposing a FastMCP server and a separate orchestration layer for local and cloud models.
 
 ## Status
-- 29 MCP tools across OSC control, music theory, composition, and audio analysis
+- 44 MCP tools across OSC control, music theory, composition, and audio analysis
 - FastMCP server with `stdio` and Streamable HTTP support
 - OSC command bridge with correlation, reply handling, and telemetry capture
 - Safe and admin tool namespaces
@@ -75,7 +75,7 @@ This repo is designed for MCP-aware CLIs that support either stdio or Streamable
 - Sample configs: [examples/client-configs](./examples/client-configs)
 - Generic MCP config: [.mcp.json.example](./.mcp.json.example)
 
-## Tool summary (29 tools)
+## Tool summary (44 tools)
 
 ### OSC / synth control
 - `bespoke.safe.health` — ping the server

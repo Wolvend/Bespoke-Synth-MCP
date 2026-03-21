@@ -296,3 +296,148 @@ Combines plan generation and execution. If confirmation is required and not prov
 ### `GET /telemetry`
 Returns the orchestrator-side execution history buffer.
 
+
+---
+
+## New tools (30–44)
+
+### `bespoke.theory.detect_chord`
+| Argument | Type | Description |
+|----------|------|-------------|
+| `pitches` | list[int] 2-12 | MIDI pitch values to analyse |
+
+Returns `{ok, root, chord_type, inversion, confidence, notes_matched, ts_ms}`.
+
+### `bespoke.theory.rhythm`
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `hits` | int 1-64 | — | Number of hit events |
+| `steps` | int 2-64 | — | Total steps in the cycle |
+| `pitch` | int 0-127 | `60` | MIDI pitch for each hit |
+| `velocity` | int 0-127 | `100` | MIDI velocity |
+| `bpm` | float | `120.0` | Tempo |
+| `subdivision` | `"8th"` \| `"16th"` \| `"triplet"` | `"16th"` | Note grid |
+| `bars` | int 1-16 | `1` | Number of bars to generate |
+| `offset` | int 0-63 | `0` | Rotate pattern start |
+
+Returns `{ok, hits, steps, pattern, note_count, notes, ts_ms}`.
+
+### `bespoke.theory.voice_lead`
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `from_notes` | list[NoteInfo] | — | Source chord notes |
+| `to_root` | string | — | Target chord root |
+| `to_chord_type` | string | `"maj"` | Target chord quality |
+
+Returns `{ok, from_notes, to_notes, total_movement_semitones, ts_ms}`.
+
+### `bespoke.theory.modulate`
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `from_root` | string | — | Source key root |
+| `from_mode` | string | `"major"` | Source key mode |
+| `to_root` | string | `"G"` | Target key root |
+| `to_mode` | string | `"major"` | Target key mode |
+
+Returns `{ok, from_key, to_key, pivot_chords: [{chord_root, chord_type, from_roman, to_roman}], ts_ms}`.
+
+### `compose.humanize`
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `notes` | array | — | Up to 256 `ScheduleNoteItem` dicts |
+| `timing_ms` | float | `10.0` | Max timing jitter ±ms (0-100) |
+| `velocity_pct` | float | `0.05` | Max velocity change fraction (0-0.5) |
+| `seed` | int | null | Optional random seed |
+
+Returns `{ok, note_count, notes, ts_ms}`.
+
+### `compose.generate_sequence`
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `root` | string | — | Scale root note |
+| `mode` | string | `"major"` | Scale mode |
+| `octave` | int | `4` | Starting octave |
+| `num_octaves` | int | `1` | Octave range (1-4) |
+| `length` | int 1-256 | `16` | Number of time slots |
+| `bpm` | float | `120.0` | Tempo |
+| `subdivision` | string | `"16th"` | Note grid |
+| `velocity_min` | int | `60` | Minimum velocity |
+| `velocity_max` | int | `100` | Maximum velocity |
+| `rest_probability` | float | `0.0` | Probability of rest per slot (0-1) |
+| `seed` | int | null | Optional random seed |
+
+Returns `{ok, root, mode, length, note_count, notes, ts_ms}`.
+
+### `compose.export_wav`
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `name` | string | — | Preset name (without `.json`) |
+| `dry_run` | bool | `false` | Validate only, do not write |
+
+Returns `{ok, name, wav_path, size_kb, duration_s, dry_run, ts_ms}`.
+Requires: `soundfile`, `numpy`.
+
+### `bespoke.safe.midi_cc`
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `cc` | int 0-127 | — | Controller number |
+| `value` | int 0-127 | — | Controller value |
+| `channel` | int 0-15 | `0` | MIDI channel |
+
+Returns `{ok, applied, raw_reply?, ts_ms}`.
+
+### `bespoke.safe.save_snapshot`
+| Argument | Type | Description |
+|----------|------|-------------|
+| `name` | string | Snapshot name (1-128 chars) |
+
+Returns `{ok, applied, raw_reply?, ts_ms}`.
+
+### `bespoke.safe.list_snapshots`
+No arguments. Reads `.bsk` files from `BESPOKE_SNAPSHOTS_DIR`.
+Returns `{ok, snapshots: list[str], count, error?, ts_ms}`.
+
+### `bespoke.safe.get_all_params`
+| Argument | Type | Description |
+|----------|------|-------------|
+| `paths` | list[string] 1-100 | Parameter paths to read |
+
+Returns `{ok, params: {path: value}, errors: {path: msg}, ts_ms}`.
+
+### `audio.normalize`
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `file` | string | — | Filename or absolute path |
+| `target_lufs` | float | `-14.0` | Target loudness in LUFS (-60 to -1) |
+| `output_file` | string | null | Output filename (auto-generated if omitted) |
+
+Returns `{ok, file, input_lufs, target_lufs, gain_db, error?, ts_ms}`.
+
+### `audio.trim`
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `file` | string | — | Filename or absolute path |
+| `silence_thresh_db` | float | `-40.0` | Silence threshold in dBFS (-80 to -10) |
+| `padding_ms` | int | `100` | Silence padding to keep (0-2000 ms) |
+| `output_file` | string | null | Output filename (auto-generated if omitted) |
+
+Returns `{ok, file, original_duration_s, trimmed_duration_s, removed_ms, error?, ts_ms}`.
+
+### `audio.splice`
+| Argument | Type | Description |
+|----------|------|-------------|
+| `file` | string | Filename or absolute path |
+| `start_ms` | int >= 0 | Start time in milliseconds |
+| `end_ms` | int >= 1 | End time in milliseconds (must be > start_ms) |
+| `output_file` | string | Output filename (auto-generated if omitted) |
+
+Returns `{ok, file, start_ms, end_ms, duration_ms, error?, ts_ms}`.
+
+### `audio.convert`
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `file` | string | — | Filename or absolute path |
+| `format` | `"mp3"` \| `"wav"` \| `"flac"` \| `"ogg"` | `"wav"` | Target format |
+| `output_file` | string | null | Output filename (auto-generated if omitted) |
+
+Returns `{ok, file, format, size_kb, error?, ts_ms}`.

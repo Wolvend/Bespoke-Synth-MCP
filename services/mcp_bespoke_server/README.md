@@ -48,7 +48,7 @@ Copy `.env.example` to `.env` and adjust as needed. Key variables:
 | `MCP_TRANSPORT` | `stdio` | `stdio` or `streamable-http` |
 | `MCP_HTTP_PORT` | `8000` | HTTP listen port (streamable-http only) |
 
-## Tools (29 total)
+## Tools (44 total)
 
 ### OSC / synth control
 
@@ -64,6 +64,10 @@ Copy `.env.example` to `.env` and adjust as needed. Key variables:
 | `bespoke.safe.schedule_notes` | Schedule up to 256 timed MIDI notes |
 | `bespoke.safe.transport_set` | Start/stop playback, set BPM and beat position |
 | `bespoke.safe.snapshot_load` | Load a named BespokeSynth snapshot |
+| `bespoke.safe.save_snapshot` | Save current BespokeSynth state as a named snapshot |
+| `bespoke.safe.list_snapshots` | List available snapshots from `BESPOKE_SNAPSHOTS_DIR` |
+| `bespoke.safe.midi_cc` | Send a MIDI Control Change (CC) message via OSC |
+| `bespoke.safe.get_all_params` | Read multiple parameter values in one batch |
 | `bespoke.safe.telemetry_last` | Retrieve recent OSC telemetry events |
 | `bespoke.admin.raw_command` | Send arbitrary OSC ops (disabled by default — set `ALLOW_ADMIN_TOOLS=true`) |
 
@@ -78,6 +82,10 @@ Copy `.env.example` to `.env` and adjust as needed. Key variables:
 | `bespoke.theory.quantize` | Snap a free frequency to the nearest scale degree |
 | `bespoke.theory.progression` | Build a chord progression from Roman numerals (e.g. `I-IV-V-I`) |
 | `bespoke.theory.arpeggiate` | Expand a chord into a timed note sequence ready for `schedule_notes` |
+| `bespoke.theory.detect_chord` | Identify the most likely chord name from a list of MIDI pitches |
+| `bespoke.theory.rhythm` | Generate a Euclidean (Bjorklund) rhythm pattern as a timed note sequence |
+| `bespoke.theory.voice_lead` | Find a target chord voicing that minimises semitone movement from source |
+| `bespoke.theory.modulate` | Find pivot chords shared between two diatonic keys |
 
 Supported scale modes: `major`, `minor`, `dorian`, `phrygian`, `lydian`, `mixolydian`, `locrian`, `harmonic_minor`, `melodic_minor`, `pentatonic_major`, `pentatonic_minor`, `blues`, `whole_tone`, `diminished`, `chromatic`.
 
@@ -95,6 +103,9 @@ Supported chord types: `maj`, `min`, `dim`, `aug`, `maj7`, `min7`, `dom7`, `dim7
 | `bespoke.compose.delete_track` | Delete a track and its companion JSON |
 | `bespoke.compose.tag_track` | Merge metadata tags into a track's companion JSON |
 | `compose.export_midi` | Export a preset or note list to a MIDI file (requires `mido`) |
+| `compose.export_wav` | Export a workflow preset to a lossless WAV file (requires `soundfile`, `numpy`) |
+| `compose.humanize` | Add random timing jitter and velocity variation to a note list |
+| `compose.generate_sequence` | Generate a random melodic sequence within a scale |
 
 ### Audio analysis
 
@@ -102,6 +113,10 @@ Supported chord types: `maj`, `min`, `dim`, `aug`, `maj7`, `min7`, `dom7`, `dim7
 |------|-------------|
 | `audio.analyze` | Detect BPM, musical key, and integrated loudness (LUFS) from an audio file |
 | `audio.stems` | Separate a track into vocals/drums/bass/other stems via demucs (htdemucs model) |
+| `audio.normalize` | Normalize a file to a target LUFS level (requires `pyloudnorm`, `soundfile`, `pydub`) |
+| `audio.trim` | Trim leading and trailing silence (requires `pydub`) |
+| `audio.splice` | Extract a time region from an audio file (requires `pydub`) |
+| `audio.convert` | Convert between mp3/wav/flac/ogg formats (requires `pydub`) |
 
 `audio.analyze` uses scipy + pydub for BPM and key detection, and pyloudnorm + soundfile for LUFS. All analysis sections are independent — a missing optional dep disables only that section.
 

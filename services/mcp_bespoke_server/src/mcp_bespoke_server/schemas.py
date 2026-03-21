@@ -476,3 +476,265 @@ class AudioStemsOut(ToolBaseModel):
     model: str | None = None
     error: str | None = None
     ts_ms: int
+
+
+# ─── bespoke.theory.detect_chord schemas ──────────────────────────────────────
+
+class DetectChordIn(ToolBaseModel):
+    pitches: list[int] = Field(min_length=2, max_length=12)
+
+
+class DetectChordOut(ToolBaseModel):
+    ok: bool
+    root: str = ""
+    chord_type: str = ""
+    inversion: int = 0
+    confidence: float = 0.0
+    notes_matched: int = 0
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── bespoke.theory.rhythm schemas ────────────────────────────────────────────
+
+class RhythmIn(ToolBaseModel):
+    hits: int = Field(ge=1, le=64)
+    steps: int = Field(ge=2, le=64)
+    pitch: int = Field(default=60, ge=0, le=127)
+    velocity: int = Field(default=100, ge=0, le=127)
+    bpm: float = Field(default=120.0, gt=0, le=480)
+    subdivision: Literal["8th", "16th", "triplet"] = "16th"
+    bars: int = Field(default=1, ge=1, le=16)
+    offset: int = Field(default=0, ge=0, le=63)
+
+
+class RhythmOut(ToolBaseModel):
+    ok: bool
+    hits: int = 0
+    steps: int = 0
+    pattern: str = ""
+    note_count: int = 0
+    notes: list[ScheduleNoteItem] = Field(default_factory=list)
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── bespoke.theory.voice_lead schemas ────────────────────────────────────────
+
+class VoiceLeadIn(ToolBaseModel):
+    from_notes: list[NoteInfo]
+    to_root: str = Field(min_length=1, max_length=4)
+    to_chord_type: str = Field(default="maj")
+
+
+class VoiceLeadOut(ToolBaseModel):
+    ok: bool
+    from_notes: list[NoteInfo] = Field(default_factory=list)
+    to_notes: list[NoteInfo] = Field(default_factory=list)
+    total_movement_semitones: int = 0
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── bespoke.theory.modulate schemas ──────────────────────────────────────────
+
+class PivotChord(ToolBaseModel):
+    chord_root: str
+    chord_type: str
+    from_roman: str
+    to_roman: str
+
+
+class ModulateIn(ToolBaseModel):
+    from_root: str = Field(min_length=1, max_length=4)
+    from_mode: str = Field(default="major")
+    to_root: str = Field(min_length=1, max_length=4)
+    to_mode: str = Field(default="major")
+
+
+class ModulateOut(ToolBaseModel):
+    ok: bool
+    from_key: str = ""
+    to_key: str = ""
+    pivot_chords: list[PivotChord] = Field(default_factory=list)
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── compose.humanize schemas ─────────────────────────────────────────────────
+
+class HumanizeIn(ToolBaseModel):
+    notes: list[ScheduleNoteItem] = Field(min_length=1, max_length=256)
+    timing_ms: float = Field(default=10.0, ge=0, le=100)
+    velocity_pct: float = Field(default=0.05, ge=0, le=0.5)
+    seed: int | None = None
+
+
+class HumanizeOut(ToolBaseModel):
+    ok: bool
+    note_count: int = 0
+    notes: list[ScheduleNoteItem] = Field(default_factory=list)
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── compose.generate_sequence schemas ────────────────────────────────────────
+
+class GenerateSequenceIn(ToolBaseModel):
+    root: str = Field(min_length=1, max_length=4)
+    mode: str = Field(default="major")
+    octave: int = Field(default=4, ge=0, le=8)
+    num_octaves: int = Field(default=2, ge=1, le=4)
+    length: int = Field(default=16, ge=1, le=256)
+    bpm: float = Field(default=120.0, gt=0, le=480)
+    subdivision: Literal["8th", "16th", "triplet"] = "16th"
+    velocity_min: int = Field(default=70, ge=0, le=127)
+    velocity_max: int = Field(default=110, ge=0, le=127)
+    rest_probability: float = Field(default=0.15, ge=0, le=1)
+    seed: int | None = None
+
+
+class GenerateSequenceOut(ToolBaseModel):
+    ok: bool
+    root: str = ""
+    mode: str = ""
+    length: int = 0
+    note_count: int = 0
+    notes: list[ScheduleNoteItem] = Field(default_factory=list)
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── compose.export_wav schemas ───────────────────────────────────────────────
+
+class ExportWavIn(ToolBaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    dry_run: bool = False
+
+
+class ExportWavOut(ToolBaseModel):
+    ok: bool
+    name: str
+    wav_path: str | None = None
+    size_kb: float | None = None
+    duration_s: float | None = None
+    dry_run: bool = False
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── bespoke.safe.midi_cc schemas ─────────────────────────────────────────────
+
+class MidiCcIn(CommonToolIn):
+    channel: int = Field(default=0, ge=0, le=15)
+    cc: int = Field(ge=0, le=127)
+    value: int = Field(ge=0, le=127)
+
+
+class MidiCcOut(ToolBaseModel):
+    ok: bool
+    applied: bool
+    raw_reply: dict[str, Any] | None = None
+    ts_ms: int
+
+
+# ─── bespoke.safe.save_snapshot schemas ───────────────────────────────────────
+
+class SaveSnapshotIn(CommonToolIn):
+    name: str = Field(min_length=1, max_length=128)
+
+
+# ─── bespoke.safe.list_snapshots schemas ──────────────────────────────────────
+
+class ListSnapshotsOut(ToolBaseModel):
+    ok: bool
+    snapshots: list[str] = Field(default_factory=list)
+    count: int = 0
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── bespoke.safe.get_all_params schemas ──────────────────────────────────────
+
+class GetAllParamsIn(CommonToolIn):
+    paths: list[str] = Field(min_length=1, max_length=100)
+
+
+class GetAllParamsOut(ToolBaseModel):
+    ok: bool
+    params: dict[str, Any] = Field(default_factory=dict)
+    errors: dict[str, str] = Field(default_factory=dict)
+    ts_ms: int
+
+
+# ─── audio.normalize schemas ──────────────────────────────────────────────────
+
+class AudioNormalizeIn(ToolBaseModel):
+    file: str = Field(min_length=1, max_length=512)
+    target_lufs: float = Field(default=-14.0, ge=-60, le=-1)
+    output_file: str | None = Field(default=None, max_length=255)
+
+
+class AudioNormalizeOut(ToolBaseModel):
+    ok: bool
+    file: str | None = None
+    input_lufs: float | None = None
+    target_lufs: float | None = None
+    gain_db: float | None = None
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── audio.trim schemas ───────────────────────────────────────────────────────
+
+class AudioTrimIn(ToolBaseModel):
+    file: str = Field(min_length=1, max_length=512)
+    silence_thresh_db: float = Field(default=-40.0, ge=-80, le=-10)
+    padding_ms: int = Field(default=100, ge=0, le=2000)
+    output_file: str | None = Field(default=None, max_length=255)
+
+
+class AudioTrimOut(ToolBaseModel):
+    ok: bool
+    file: str | None = None
+    original_duration_s: float | None = None
+    trimmed_duration_s: float | None = None
+    removed_ms: int | None = None
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── audio.splice schemas ─────────────────────────────────────────────────────
+
+class AudioSpliceIn(ToolBaseModel):
+    file: str = Field(min_length=1, max_length=512)
+    start_ms: int = Field(ge=0)
+    end_ms: int = Field(ge=1)
+    output_file: str | None = Field(default=None, max_length=255)
+
+
+class AudioSpliceOut(ToolBaseModel):
+    ok: bool
+    file: str | None = None
+    start_ms: int | None = None
+    end_ms: int | None = None
+    duration_ms: int | None = None
+    error: str | None = None
+    ts_ms: int
+
+
+# ─── audio.convert schemas ────────────────────────────────────────────────────
+
+class AudioConvertIn(ToolBaseModel):
+    file: str = Field(min_length=1, max_length=512)
+    format: Literal["mp3", "wav", "flac", "ogg"] = "wav"
+    output_file: str | None = Field(default=None, max_length=255)
+
+
+class AudioConvertOut(ToolBaseModel):
+    ok: bool
+    file: str | None = None
+    format: str | None = None
+    size_kb: float | None = None
+    error: str | None = None
+    ts_ms: int

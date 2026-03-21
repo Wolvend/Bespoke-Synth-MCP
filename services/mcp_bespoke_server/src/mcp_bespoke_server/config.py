@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     osc_reply_timeout_ms: int = Field(default=1500, alias="OSC_REPLY_TIMEOUT_MS")
     idempotency_ttl_s: int = Field(default=600, alias="IDEMPOTENCY_TTL_S")
     bespoke_known_modules: str = Field(default="", alias="BESPOKE_KNOWN_MODULES")
+    bespoke_snapshots_dir: str = Field(default="", alias="BESPOKE_SNAPSHOTS_DIR")
 
     @property
     def known_modules(self) -> list[str]:
